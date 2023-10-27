@@ -1,6 +1,6 @@
 unit uJsonFiles;
 
-//Rafael Hassegawa
+
 //A basic JSON file looks like:
 
 //JSon1
@@ -33,6 +33,7 @@ type
     procedure ReadJson3;
     procedure ReadJson4;
     procedure ReadJson5;
+    procedure ReadJson6;
     { Private declarations }
   public
     { Public declarations }
@@ -51,7 +52,8 @@ begin
   //readJson2();
   //ReadJson3()
   //ReadJson4();
-  ReadJson5();
+  //ReadJson5();
+  ReadJson6();
 end;
 
 procedure TfrmJsonFiles.readJson1();
@@ -301,7 +303,7 @@ begin
     begin
       //orders
       ls_message := 'JSON 5 - Order ID: ' + jsonArray[i].GetValue<string>('id', '') + sLineBreak +
-        'Costumer: ' + jsonArray[i].GetValue<string>('costumer', '');
+        'Costumer: ' + jsonArray[i].GetValue<string>('costumer', '') + sLineBreak;
 
       ShowMessage(ls_message);
       //items
@@ -313,7 +315,7 @@ begin
           ls_message := 'Item ID: ' + itemsArray[j].GetValue<integer>('id', 0).ToString + sLineBreak +
             'Description: ' + itemsArray[j].GetValue<string>('description', '') + sLineBreak +
             'Amount ' + itemsArray[j].GetValue<double>('amount', 0).ToString + sLineBreak +
-            'Total: ' + itemsArray[j].GetValue<double>('total', 0).ToString;
+            'Total: ' + itemsArray[j].GetValue<double>('total', 0).ToString + sLineBreak;
 
           ShowMessage(ls_message);
 
@@ -342,8 +344,88 @@ begin
   finally
 
   end;
+end;
 
+procedure TfrmJsonFiles.ReadJson6();
+var
+  objProduto : TJSONObject;
+  arrProduto, arrDepositos :TJsonArray;
+  i, j : integer;
+  deposito : string;
+begin
+//{
+//  "retorno": {
+//    "produtos": [
+//      {
+//        "produto": {
+//          "id": "15878116285",
+//          "codigo": "00239141",
+//          "descricao": "Misturador Monocomando",
+//          "categoria": {
+//            "id": "4046406",
+//            "descricao": "Categoria padrão"
+//          },
+//          "pesoLiq": "1.20000",
+//          "pesoBruto": "1.20000",
+//          "estoqueMinimo": "0.00",
+//          "estoqueMaximo": "0.00",
+//          "spedTipoItem": "",
+//          "estoqueAtual": 10,
+//          "depositos": [
+//            {
+//              "deposito": {
+//                "id": "14886467960",
+//                "nome": "Geral",
+//                "saldo": 10,
+//                "desconsiderar": "N",
+//                "saldoVirtual": 10
+//              }
+//            }
+//          ]
+//        }
+//      }
+//    ]
+//  }
+//}
+  try
+    //main object
+    objProduto := TJSONObject.ParseJSONValue(TEncoding.UTF8.GetBytes(memoJsonFile.Text),0) as TJsonObject;
+    //product
+    arrProduto := objProduto.GetValue<TJSONArray>('retorno.produtos');
 
+    for I := 0 to arrProduto.Size - 1 do
+    begin
+      ShowMessage('Descrição: ' + arrProduto[i].GetValue<string>('produto.descricao',''));
+
+      //depósitos
+      arrDepositos := arrProduto[i].GetValue<TJSONArray>('produto.depositos');
+      for j := 0 to arrDepositos.Size - 1 do
+      begin
+//          "depositos": [
+//            {
+//              "deposito": {
+//                "id": "14886467960",
+//                "nome": "Geral",
+//                "saldo": 10,
+//                "desconsiderar": "N",
+//                "saldoVirtual": 10
+//              }
+//            }
+//          ]
+        deposito := 'Detalhes depósito: ' + sLineBreak +
+          'ID depósito: ' + arrDepositos[j].GetValue<string>('deposito.id','') + sLineBreak +
+          'Nome depósito: ' + arrDepositos[j].GetValue<string>('deposito.nome','') + sLineBreak +
+          'Saldo: ' + arrDepositos[j].GetValue<integer>('deposito.saldo',0).ToString + sLineBreak +
+          'Desconsiderar: ' + arrDepositos[j].GetValue<string>('deposito.desconsiderar','') + sLineBreak +
+          'Saldo virtual: ' + arrDepositos[j].GetValue<double>('deposito.saldo',0).ToString;
+
+        ShowMessage(deposito);
+      end;
+    end;
+
+  finally
+    objProduto.DisposeOf();
+  end;
 end;
 
 procedure TfrmJsonFiles.FormKeyPress(Sender: TObject; var Key: Char);
